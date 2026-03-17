@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data files (too large for GitHub)
+data/*.csv
+data/processed/*.csv
+
+# Trained models (optional: you may WANT to commit these so Streamlit Cloud can use them)
+# models/*.pkl
+
+# API keys and secrets — NEVER commit these!
+.env
+app/.streamlit/secrets.toml
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
