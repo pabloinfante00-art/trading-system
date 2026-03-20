@@ -47,15 +47,23 @@ def buy_and_sell_strategy(predictions: pd.Series, close_prices: pd.Series,
         pred = predictions.iloc[i]
 
         if pred == 1 and cash >= price:
-            # BUY: model predicts price will go UP
-            shares += 1
-            cash -= price
-            action = "BUY"
+            # BUY: invest 50% of available cash
+            invest_amount = cash * 0.5
+            shares_to_buy = int(invest_amount / price)
+            if shares_to_buy < 1:
+                shares_to_buy = 1
+            if cash >= shares_to_buy * price:
+                shares += shares_to_buy
+                cash -= shares_to_buy * price
+                action = f"BUY x{shares_to_buy}"
+            else:
+                action = "HOLD"
         elif pred == 0 and shares > 0:
-            # SELL: model predicts price will go DOWN
-            shares -= 1
-            cash += price
-            action = "SELL"
+            # SELL: sell 50% of held shares (minimum 1)
+            shares_to_sell = max(1, shares // 2)
+            shares -= shares_to_sell
+            cash += shares_to_sell * price
+            action = f"SELL x{shares_to_sell}"
         else:
             # HOLD: can't buy (no cash) or can't sell (no shares)
             action = "HOLD"
@@ -128,8 +136,8 @@ def calculate_performance_metrics(strategy_results: pd.DataFrame,
     total_return = ((final_value - initial_cash) / initial_cash) * 100
     
     # Count trades
-    total_buys = (strategy_results["Action"] == "BUY").sum()
-    total_sells = (strategy_results["Action"] == "SELL").sum()
+    total_buys = strategy_results["Action"].str.startswith("BUY").sum()
+    total_sells = strategy_results["Action"].str.startswith("SELL").sum()
     total_holds = (strategy_results["Action"] == "HOLD").sum()
 
     # Max portfolio value and max drawdown
