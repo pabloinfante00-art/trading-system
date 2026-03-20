@@ -4,7 +4,7 @@ An automated daily trading system that uses machine learning to predict stock ma
 
 ## Team Members
 
-- [Your Name Here]
+- Selim El Khoury, Jan Wilhelm Pietsch, Nuria Etemadi, Tenaw Belete, Pablo Infante
 
 ## 🌐 Live Application
 
