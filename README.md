@@ -10,9 +10,7 @@ An automated daily trading system that uses machine learning to predict stock ma
 
 👉 👉 **[Click here to access the live app](https://trading-system-gnvcjp4j8kqekggfhwpfl2.streamlit.app)**
 
-import streamlit as st
-
-st.link_button("Click here to access the live app", "https://trading-system-gnvcjp4j8kqekggfhwpfl2.streamlit.app")
+[![Live App](https://img.shields.io/badge/Live_App-Trading_System-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://trading-system-gnvcjp4j8kqekggfhwpfl2.streamlit.app)
 
 ## Overview
 
