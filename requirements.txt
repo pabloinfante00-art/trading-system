@@ -1,6 +1,19 @@
+# Data processing & ML (Part 1)
 pandas==2.2.2
 numpy==1.26.4
-scikit-learn==1.5.1
-streamlit==1.37.0
-requests==2.32.3
+scikit-learn==1.4.2
 joblib==1.4.2
+
+# Visualization
+matplotlib==3.8.4
+seaborn==0.13.2
+plotly==5.20.0
+
+# SimFin API wrapper (Part 2.1)
+requests==2.31.0
+
+# Web app (Part 2.2)
+streamlit==1.35.0
+
+# API key management (keep keys out of code)
+python-dotenv==1.0.1
