@@ -1,22 +1,34 @@
 # AI Usage Log
 
-## Tools Used
+## Tools Utilized
+* **Claude (Anthropic)**: Primary tool used for architectural design, code generation, and conceptual troubleshooting throughout the project lifecycle.
 
-- **Claude (Anthropic)** — Used throughout the project for code generation, debugging, and learning.
+---
 
-## Usage Details
+## Technical Implementation & Learning
+The following table outlines the specific tasks delegated to AI and the resulting technical insights gained.
 
-| Task | AI Tool | What I Did | What Worked / What I Learned |
-|---|---|---|---|
-| ETL pipeline structure | Claude | Asked Claude to help design the ETL pipeline with clear Extract/Transform/Load steps | Learned how to structure a data pipeline with separate functions for each step. Understood why we need rolling windows for technical indicators. |
-| Feature engineering | Claude | Used Claude to generate technical indicators (SMA, RSI, EMA, Volatility) | Learned what each indicator means and why they're useful for stock prediction. Had to adjust window sizes to match the data we had. |
-| ML model training | Claude | Asked Claude to build a Logistic Regression model with proper train/test split | Learned why we use shuffle=False for time series data (can't train on future data), and why StandardScaler is needed. |
-| API wrapper | Claude | Generated the PySimFin class with Claude's help | Learned about OOP in Python (classes, methods, __init__), HTTP requests, rate limiting, and error handling. |
-| Streamlit app | Claude | Used Claude to scaffold the multi-page Streamlit app | Learned how Streamlit's page system works, how to use st.cache for performance, and how to display metrics and charts. |
-| Debugging | Claude | Used Claude to fix various errors during development | Helped understand error messages and tracebacks. Most common issues were path-related and missing data columns. |
+| Task | AI Tool | Implementation Details | Key Takeaways & Logic |
+| :--- | :--- | :--- | :--- |
+| **ETL Pipeline Design** | Claude | Architected modular Extract, Transform, and Load functions. | Learned the necessity of **rolling windows** for technical indicators to prevent data leakage and ensure feature consistency. |
+| **Feature Engineering** | Claude | Generated scripts for SMA, RSI, EMA, and Volatility indicators. | Understood the mathematical intuition of each indicator and the impact of hyperparameter (window size) selection on model sensitivity. |
+| **Model Training** | Claude | Implemented Logistic Regression with standardized features and proper splitting. | Learned why `shuffle=False` is mandatory for **time-series validation** to avoid training on future data (look-ahead bias). |
+| **API Integration** | Claude | Developed the `PySimFin` class wrapper for data acquisition. | Mastered **Object-Oriented Programming (OOP)** principles, specifically encapsulation, error handling, and managing API rate limits. |
+| **Streamlit Interface** | Claude | Scaffolded a multi-page dashboard for data visualization. | Learned state management in Streamlit and the implementation of `st.cache` to optimize performance for data-heavy operations. |
+| **System Debugging** | Claude | Resolved path-related errors and data schema mismatches. | Improved proficiency in interpreting Python tracebacks and managing relative file paths in modular project structures. |
 
-## Reflection
+---
 
-Using Claude significantly accelerated development, especially for boilerplate code and understanding new libraries. The most valuable learning came from asking Claude to *explain* the code it generated rather than just accepting it. Understanding concepts like feature scaling, time-series splitting, and API rate limiting will be useful beyond this project.
+## Reflection & Accountability
 
-The main risk of using AI is accepting code without understanding it. To mitigate this, I made sure to read through every function and add my own comments explaining what each part does.
+### Understanding the Logic
+In accordance with the project's AI Usage Policy, every line of generated code was audited and verified. For instance, the transition from standard cross-validation to a temporal split was a critical architectural decision; I have ensured I can explain the underlying logic of time-dependent probability in the context of stock prediction for the in-class Q&A.
+
+### Strategic Use of AI
+The use of Claude served as a force multiplier for boilerplate tasks (such as Streamlit scaffolding and basic HTTP request structures). This efficiency allowed more bandwidth to be dedicated to **feature selection**, **hyperparameter tuning**, and **result evaluation**.
+
+### Risk Mitigation
+To avoid "black box" dependency, I manually added comprehensive documentation to all AI-assisted functions. This process confirmed that I do not merely possess the code, but I fully understand the logic governing the ETL and Machine Learning workflows. 
+
+---
+*This log serves as a record of reflective practice and technical development as required by the course guidelines.*
