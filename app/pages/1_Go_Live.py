@@ -10,7 +10,6 @@ This page allows users to:
 
 import streamlit as st
 import pandas as pd
-import numpy as np
 import joblib
 import os
 import sys
@@ -19,6 +18,9 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from pysimfin import PySimFin
+# Import the single source of truth for feature engineering — keeps live data and
+# training data processed identically. No duplicate ETL code here.
+from etl import FEATURE_COLUMNS, transform
 
 # ---------------------------------------------------------------------------
 # PAGE CONFIGURATION
@@ -31,16 +33,7 @@ st.set_page_config(page_title="Go Live", page_icon="🚀", layout="wide")
 TICKERS = ["AAPL", "MSFT", "GOOG", "AMZN", "TSLA"]
 MODELS_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "models")
 
-FEATURE_COLUMNS = [
-    "Returns",
-    "SMA_5",
-    "SMA_20",
-    "EMA_12",
-    "RSI_14",
-    "Volatility_20",
-    "Volume_Change",
-    "High_Low_Range",
-]
+# FEATURE_COLUMNS is imported from src/etl.py above — do not redefine here.
 
 
 # ---------------------------------------------------------------------------
@@ -71,13 +64,30 @@ def fetch_prices(ticker: str, start: str, end: str) -> pd.DataFrame:
         return pd.DataFrame()
 
 
-def apply_etl_transformations(df: pd.DataFrame) -> pd.DataFrame:
+def apply_etl_transformations(df: pd.DataFrame, ticker: str) -> pd.DataFrame:
     """
-    Apply the SAME transformations used in src/etl.py to the live data.
-    This ensures the model receives data in the same format it was trained on.
+    Prepare live API data and run it through the shared ETL transform() function.
+
+    The SimFin REST API returns columns with verbose names (e.g. "Last Closing Price")
+    that differ from the bulk CSV names (e.g. "Close"). We rename them here, then
+    delegate all feature engineering to src/etl.transform() — the single source of
+    truth shared with the training pipeline.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Raw price data returned by PySimFin.get_share_prices().
+    ticker : str
+        Ticker symbol (needed so transform() can filter correctly).
+
+    Returns
+    -------
+    pd.DataFrame
+        Feature-engineered DataFrame ready for model prediction.
     """
     df = df.copy()
-# Rename API columns to match bulk download names
+
+    # Rename API column names to match the bulk-download schema that transform() expects
     rename_map = {
         "Last Closing Price": "Close",
         "Highest Price": "High",
@@ -88,53 +98,11 @@ def apply_etl_transformations(df: pd.DataFrame) -> pd.DataFrame:
     }
     df = df.rename(columns=rename_map)
 
-    if "Date" in df.columns:
-        df["Date"] = pd.to_datetime(df["Date"])
-        df = df.sort_values("Date").reset_index(drop=True)
+    # transform() filters by Ticker — add a column so it can find the rows
+    df["Ticker"] = ticker
 
-    # Fill missing Volume with 0 (same as ETL)
-    if "Volume" in df.columns:
-        df["Volume"] = df["Volume"].fillna(0)
-    if "High" in df.columns:
-        df["High"] = df["High"].fillna(df["Close"])
-    if "Low" in df.columns:
-        df["Low"] = df["Low"].fillna(df["Close"])
-
-    # Daily Returns
-    df["Returns"] = df["Close"].pct_change()
-
-    # Simple Moving Averages
-    df["SMA_5"] = df["Close"].rolling(window=5).mean()
-    df["SMA_20"] = df["Close"].rolling(window=20).mean()
-
-    # Exponential Moving Average
-    df["EMA_12"] = df["Close"].ewm(span=12, adjust=False).mean()
-
-    # RSI
-    delta = df["Close"].diff()
-    gain = delta.where(delta > 0, 0.0)
-    loss = (-delta).where(delta < 0, 0.0)
-    avg_gain = gain.rolling(window=14).mean()
-    avg_loss = loss.rolling(window=14).mean()
-    rs = avg_gain / avg_loss
-    df["RSI_14"] = 100 - (100 / (1 + rs))
-
-    # Volatility
-    df["Volatility_20"] = df["Returns"].rolling(window=20).std()
-
-    # Volume Change
-    if "Volume" in df.columns and df["Volume"].sum() > 0:
-        df["Volume_Change"] = df["Volume"].pct_change().replace([np.inf, -np.inf], 0).fillna(0)
-    else:
-        df["Volume_Change"] = 0.0
-
-    # High-Low Range
-    if "High" in df.columns and "Low" in df.columns:
-        df["High_Low_Range"] = df["High"] - df["Low"]
-    else:
-        df["High_Low_Range"] = 0.0
-
-    return df
+    # include_target=False: we don't know tomorrow's price for live data
+    return transform(df, ticker, include_target=False)
 
 
 def load_model_and_scaler(ticker: str):
@@ -220,7 +188,7 @@ st.markdown("---")
 # Apply ETL Transformations
 st.header("🔧 Technical Indicators")
 
-transformed_df = apply_etl_transformations(raw_df)
+transformed_df = apply_etl_transformations(raw_df, selected_ticker)
 
 if not transformed_df.empty:
     latest = transformed_df.dropna(subset=FEATURE_COLUMNS)
