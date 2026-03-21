@@ -208,13 +208,11 @@ def load_model(ticker: str):
     return joblib.load(mp), joblib.load(sp)
 
 
-PRED_THRESHOLD = 0.4  # Lower than default 0.5 to compensate for model's DOWN bias
-
 def predict(model, scaler, row: pd.Series) -> dict:
     X = row[FEATURE_COLUMNS].values.reshape(1, -1)
     X_s = scaler.transform(X)
     prob = model.predict_proba(X_s)[0]
-    pred = 1 if prob[1] >= PRED_THRESHOLD else 0
+    pred = 1 if prob[1] >= 0.5 else 0
     return {
         "prediction": int(pred),
         "label":      "BUY" if pred == 1 else "SELL",
