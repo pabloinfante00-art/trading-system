@@ -29,6 +29,37 @@ st.markdown("""
     header[data-testid="stHeader"] {
         background-color: #0a0a0a !important;
     }
+    [data-testid="stSidebarNav"]::before {
+        content: "TRADING SYSTEM";
+        display: block;
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #ff6600 !important;
+        letter-spacing: 0.18em;
+        padding: 1.2rem 1rem 0.8rem 1rem;
+        border-bottom: 1px solid #1a1a2e;
+        margin-bottom: 0.4rem;
+    }
+    [data-testid="stSidebarNavLink"] {
+        font-family: 'IBM Plex Mono', monospace !important;
+        font-size: 0.78rem !important;
+        letter-spacing: 0.06em !important;
+        text-transform: uppercase !important;
+        border-radius: 2px !important;
+        margin: 1px 0 !important;
+    }
+    [data-testid="stSidebarNavLink"]:hover {
+        background-color: #1a1a2e !important;
+    }
+    [data-testid="stSidebarNavLink"][aria-current="page"] {
+        background-color: #1a1a2e !important;
+        border-left: 2px solid #ff6600 !important;
+    }
+    [data-testid="stSidebarNavLink"] span {
+        font-family: 'IBM Plex Mono', monospace !important;
+        font-size: 0.78rem !important;
+    }
 
     /* Top bar — Bloomberg-style orange/black bar */
     .bb-topbar {
