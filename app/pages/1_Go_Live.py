@@ -210,6 +210,13 @@ st.markdown(f"""
 # ---------------------------------------------------------------------------
 # CONTROLS: ticker + time horizon
 # ---------------------------------------------------------------------------
+st.markdown("""
+<div style="font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; font-weight: 600;
+     color: #ff6600; text-transform: uppercase; letter-spacing: 0.14em; margin-bottom: 0.6rem;">
+    Live Market Intelligence &nbsp;·&nbsp; ML-Powered Trading Signals
+</div>
+""", unsafe_allow_html=True)
+
 ctrl_col1, ctrl_col2 = st.columns([1, 2])
 
 with ctrl_col1:
