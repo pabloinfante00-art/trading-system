@@ -117,8 +117,7 @@ TICKER_COLORS = {
     "AMZN": "#d62728",
     "TSLA": "#9467bd",
 }
-MODELS_DIR    = os.path.join(os.path.dirname(__file__), "..", "..", "models")
-PROCESSED_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "data", "processed")
+MODELS_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "models")
 
 TIME_HORIZON_DAYS = {"1M": 30, "3M": 90, "6M": 180, "1Y": 365}
 
@@ -185,34 +184,16 @@ def predict(model, scaler, row: pd.Series) -> dict:
     }
 
 
-@st.cache_data(ttl=3600)
 def load_peer_prices(ticker: str, start: str, end: str) -> pd.DataFrame:
-    """
-    Get closing prices for a ticker for peer comparison.
-    Tries processed CSV first (fast, no API call).
-    Falls back to SimFin API if CSV not available (works on cloud deployments).
-    """
-    # Try local processed CSV first
-    fp = os.path.join(PROCESSED_DIR, f"{ticker}_processed.csv")
-    if os.path.exists(fp):
-        df = pd.read_csv(fp)
-        if "Date" in df.columns and "Close" in df.columns:
-            df["Date"] = pd.to_datetime(df["Date"])
-            cutoff = pd.Timestamp(start)
-            return df[df["Date"] >= cutoff][["Date", "Close"]].copy()
-
-    # Fall back to SimFin API
-    try:
-        client = get_simfin_client()
-        df = client.get_share_prices(ticker, start, end)
-        if df.empty:
-            return pd.DataFrame()
-        df = df.rename(columns={"Last Closing Price": "Close"})
-        if "Date" in df.columns:
-            df["Date"] = pd.to_datetime(df["Date"])
-        return df[["Date", "Close"]].dropna()
-    except Exception:
+    """Get closing prices for a ticker using the already-cached fetch_prices()."""
+    df = fetch_prices(ticker, start, end)
+    if df.empty:
         return pd.DataFrame()
+    df = rename_api_columns(df.copy())
+    if "Date" not in df.columns or "Close" not in df.columns:
+        return pd.DataFrame()
+    df["Date"] = pd.to_datetime(df["Date"])
+    return df[["Date", "Close"]].dropna()
 
 
 # ---------------------------------------------------------------------------
@@ -380,14 +361,12 @@ st.markdown('<div class="bb-divider"></div>', unsafe_allow_html=True)
 st.markdown('<div class="bb-panel-header">PEER COMPARISON — NORMALIZED PRICE (PROCESSED DATA)</div>', unsafe_allow_html=True)
 st.markdown('<div style="font-family:\'IBM Plex Mono\',monospace; font-size:0.72rem; color:#5a5a6a; margin-bottom:0.8rem;">Prices normalized to 1.0 at start of period. Easily compare performance across all tickers.</div>', unsafe_allow_html=True)
 
-# Load processed data for all tickers and filter to time horizon
+# Fetch closing prices for all tickers via the SimFin API (already cached per ticker)
 peer_frames = {}
-with st.spinner("Fetching peer data..."):
-    for t in TICKERS:
-        df_t = load_peer_prices(t, start_date.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d"))
-        if not df_t.empty and "Date" in df_t.columns and "Close" in df_t.columns:
-            if len(df_t) > 5:
-                peer_frames[t] = df_t.set_index("Date")["Close"]
+for t in TICKERS:
+    df_t = load_peer_prices(t, start_date.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d"))
+    if not df_t.empty and len(df_t) > 5:
+        peer_frames[t] = df_t.set_index("Date")["Close"]
 
 if peer_frames:
     norm_df = pd.DataFrame(peer_frames)
@@ -439,7 +418,7 @@ if peer_frames:
             <div class="bb-peer-ret {cls}">{sign} {abs(ret):.2f}%</div>
         </div>""", unsafe_allow_html=True)
 else:
-    st.info("No processed data found. Run `python src/etl.py` first.")
+    st.warning("Could not fetch peer data from SimFin. Check your API key or try again.")
 
 st.markdown('<div class="bb-divider"></div>', unsafe_allow_html=True)
 
