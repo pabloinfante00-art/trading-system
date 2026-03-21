@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Go Live Page - Bloomberg Terminal Style
 ========================================
@@ -10,6 +11,7 @@ import numpy as np
 import joblib
 import os
 import sys
+import plotly.graph_objects as go
 from datetime import datetime, timedelta
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
@@ -385,8 +387,6 @@ st.markdown('<div class="bb-divider"></div>', unsafe_allow_html=True)
 st.markdown(f'<div class="bb-panel-header">{selected_ticker} — PRICE & MOVING AVERAGES ({horizon_label})</div>', unsafe_allow_html=True)
 
 if not display_df.empty and "Date" in display_df.columns:
-    import plotly.graph_objects as go
-
     ohlc = display_df[["Date", "Open", "High", "Low", "Close"]].dropna()
     mas  = transformed_df[["Date", "SMA_5", "SMA_20", "EMA_12"]].dropna() if not transformed_df.empty else pd.DataFrame()
 
