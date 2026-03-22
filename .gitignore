@@ -13,12 +13,14 @@ env/
 # Jupyter
 .ipynb_checkpoints/
 
-# Data files (too large for GitHub)
+# Raw SimFin bulk downloads — too large for GitHub, download manually
 data/*.csv
-data/processed/*.csv
 
-# Trained models (optional: you may WANT to commit these so Streamlit Cloud can use them)
-# models/*.pkl
+# Processed CSVs and trained models ARE committed intentionally:
+# Streamlit Cloud has no local data, so these pre-built artifacts are
+# required for the app to run without re-running the full ETL + training.
+# data/processed/*.csv  ← committed
+# models/*.pkl          ← committed
 
 # API keys and secrets — NEVER commit these!
 .env

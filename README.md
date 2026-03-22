@@ -4,6 +4,8 @@ An automated daily trading system that uses machine learning to predict stock ma
 
 ## Team Members
 
+**Master of Business Analytics and Data Science, IE School of Science and Technology**
+
 - Selim El Khoury, Jan Wilhelm Pietsch, Nuria Etemadi, Tenaw Belete, Pablo Infante
 
 ## 🌐 Live Application
