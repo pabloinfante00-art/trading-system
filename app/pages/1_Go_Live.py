@@ -289,17 +289,40 @@ with st.spinner(f"Fetching {selected_ticker} from SimFin..."):
     )
 
 if raw_df.empty:
-    st.error(f"No data returned for {selected_ticker}. Check your API key or try again.")
-    st.stop()
+    # Fallback: load from pre-processed CSV when API quota is exhausted
+    fallback_path = os.path.join(
+        os.path.dirname(__file__), "..", "..", "data", "processed",
+        f"{selected_ticker}_processed.csv"
+    )
+    if os.path.exists(fallback_path):
+        st.warning(
+            f"Live API unavailable (quota exceeded). Showing latest cached data for {selected_ticker}.",
+            icon="⚠️",
+        )
+        _fallback_df = pd.read_csv(fallback_path, parse_dates=["Date"])
+        # Filter to selected time horizon
+        cutoff = pd.Timestamp(start_date)
+        _fallback_df = _fallback_df[_fallback_df["Date"] >= cutoff].reset_index(drop=True)
+        display_df = _fallback_df.copy()
+        transformed_df = _fallback_df.copy()  # already has all feature columns
+        _skip_etl = True
+    else:
+        st.error(f"No data returned for {selected_ticker}. Check your API key or try again.")
+        st.stop()
+else:
+    # Rename columns for price display
+    display_df = rename_api_columns(raw_df.copy())
+    _skip_etl = False
 
-# Rename columns for price display
-display_df = rename_api_columns(raw_df.copy())
-if "Date" in display_df.columns:
-    display_df["Date"] = pd.to_datetime(display_df["Date"])
-    display_df = display_df.sort_values("Date").reset_index(drop=True)
-
-# Apply ETL for ML features
-transformed_df = apply_etl_transformations(raw_df, selected_ticker)
+if "_skip_etl" not in dir() or not _skip_etl:
+    if "Date" in display_df.columns:
+        display_df["Date"] = pd.to_datetime(display_df["Date"])
+        display_df = display_df.sort_values("Date").reset_index(drop=True)
+    # Apply ETL for ML features
+    transformed_df = apply_etl_transformations(raw_df, selected_ticker)
+else:
+    if "Date" in display_df.columns:
+        display_df = display_df.sort_values("Date").reset_index(drop=True)
 latest_complete = transformed_df.dropna(subset=FEATURE_COLUMNS)
 
 # ---------------------------------------------------------------------------
